@@ -1,0 +1,34 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: npm test
+
+  e2e:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      # Google Chrome et podman sont préinstallés sur les runners Ubuntu :
+      # pas de navigateur Playwright à télécharger
+      - run: pip install playwright
+      - run: podman pull docker.io/nginxinc/nginx-unprivileged:1.29-alpine
+      - run: python3 tests/e2e.py web

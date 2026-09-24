@@ -1,0 +1,10 @@
+{
+  "name": "zalgo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js && python3 -m unittest discover -s tests -p 'test_*.py'",
+    "test:e2e": "python3 tests/e2e.py web",
+    "bench": "taskset -c 12-21 python3 bench/bench.py --a web"
+  }
+}

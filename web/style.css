@@ -1,0 +1,434 @@
+@font-face {
+  font-family: "Cormorant";
+  src: url(fonts/cormorant-italic.woff2) format("woff2");
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+}
+/* Sous-ensemble de Noto Serif : latin + marques combinantes. Les polices
+   système de repli dessinent ces marques en blocs carrés. */
+@font-face {
+  font-family: "ZalgoSerif";
+  src: url(fonts/noto-serif-zalgo.woff2) format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  --bg: #050406;
+  --ink: #ddd6cb;
+  --dim: #8a8190;
+  --faint: #2b2530;
+  --line: #3a3140;
+  --blood: #d11a2a;
+  --blood-hi: #ff3346;
+  --panel: rgba(16, 12, 18, 0.72);
+  --mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  --serif: "Cormorant", "ZalgoSerif", Georgia, serif;
+  --zalgo: "ZalgoSerif", Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { background: var(--bg); }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  /* Pas de fond ici : celui de html suffit, et un fond sur body masquerait
+     la lueur et l'écho (z-index négatifs, peints sous le fond de body) */
+  color: var(--ink);
+  font: 15px/1.5 var(--mono);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Lueur rouge qui respire en haut, voile violet en bas */
+.glow {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgba(170, 12, 32, 0.38), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 50% 115%, rgba(70, 20, 90, 0.28), transparent 70%);
+  will-change: opacity;
+}
+
+/* Grain + lignes de balayage + vignette */
+.fx {
+  position: fixed;
+  inset: -50%;
+  z-index: 50;
+  pointer-events: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.075;
+  will-change: transform;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.28) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.75) 100%);
+}
+
+/* Écho géant et flou du texte corrompu, derrière tout */
+.echo {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  display: grid;
+  place-items: center;
+  padding: 6vh 4vw;
+  overflow: hidden;
+  font: italic 500 clamp(5rem, 17vw, 16rem)/1.1 var(--serif);
+  color: var(--blood);
+  opacity: 0.07;
+  filter: blur(3px);
+  text-align: center;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+}
+
+.wrap {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  padding: max(3vh, 20px) 16px 40px;
+}
+
+.head { text-align: center; padding: 3.5rem 0 2.6rem; }
+
+.title {
+  position: relative;
+  margin: 0;
+  font: italic 500 clamp(4.4rem, 20vw, 10.5rem)/1 var(--serif);
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  text-shadow: -2px 0 rgba(255, 20, 60, 0.55), 2px 0 rgba(0, 210, 255, 0.28);
+  white-space: nowrap;
+  user-select: none;
+}
+/* Halo sur son propre calque, peint une seule fois. En text-shadow du titre,
+   ce flou de 38 px était repeint à chaque tirage, soit 8 fois par seconde. */
+.title::before {
+  content: "zalgo";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  color: transparent;
+  text-shadow: 0 0 38px rgba(209, 26, 42, 0.35);
+  pointer-events: none;
+  will-change: transform;
+}
+.title.burst::before { opacity: 0; }
+/* Hauteur figée : sans ça, chaque tirage change la hauteur de ligne et toute
+   la page tressaute 10 fois par seconde. Les marques débordent en visible. */
+.title { height: 1em; overflow: visible; }
+.title span { display: inline-block; height: 1em; }
+.title.burst span {
+  transform: translate(var(--jx, 3px), var(--jy, -2px)) skewX(var(--sk, -8deg));
+  text-shadow: -7px 0 rgba(255, 20, 60, 0.8), 6px 0 rgba(0, 210, 255, 0.5);
+  filter: contrast(1.4);
+}
+
+.sub {
+  margin: 2.8rem 0 0;
+  font: 0.8rem/1.5 var(--zalgo);
+  letter-spacing: 0.55em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.altar {
+  position: relative;
+  padding: 22px;
+  background: var(--panel);
+  border: 1px solid var(--faint);
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 30px 80px -30px rgba(209, 26, 42, 0.25);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.lbl {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.lbl label, .level label {
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, textarea:focus-visible, input:focus-visible, .out:focus-visible {
+  outline: 1px solid var(--blood-hi);
+  outline-offset: 3px;
+}
+
+.ghost {
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: var(--dim);
+  transition: color 0.2s;
+}
+.ghost:hover { color: var(--ink); }
+/* Le bouton s'allume quand le texte saisi contient déjà des marques */
+.ghost.hot { color: var(--blood-hi); text-shadow: 0 0 12px rgba(255, 51, 70, 0.6); }
+
+textarea {
+  display: block;
+  width: 100%;
+  min-height: 3.2rem;
+  max-height: 40vh;
+  padding: 10px 0 12px;
+  resize: none;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font: italic 500 1.55rem/1.35 var(--serif);
+  caret-color: var(--blood-hi);
+  transition: border-color 0.3s;
+}
+textarea:focus { outline: none; border-bottom-color: var(--blood); }
+textarea::placeholder { color: #5a525f; transition: opacity 0.6s; }
+textarea.fade::placeholder { opacity: 0; }
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 0 16px;
+}
+
+.level { display: flex; align-items: center; gap: 12px; flex: 1 1 260px; }
+.level output {
+  min-width: 4.8em;
+  font-size: 0.78rem;
+  color: var(--blood-hi);
+  text-align: right;
+}
+
+input[type="range"] {
+  --p: 35%;
+  flex: 1;
+  height: 22px;
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: linear-gradient(90deg, var(--blood) var(--p), var(--line) var(--p));
+}
+input[type="range"]::-moz-range-track { height: 2px; background: var(--line); }
+input[type="range"]::-moz-range-progress { height: 2px; background: var(--blood); }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -5px;
+  background: var(--blood-hi);
+  border: 0;
+  transform: rotate(45deg);
+  box-shadow: 0 0 14px rgba(255, 51, 70, 0.8);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
+  background: var(--blood-hi);
+  border: 0;
+  border-radius: 0;
+  transform: rotate(45deg);
+  box-shadow: 0 0 14px rgba(255, 51, 70, 0.8);
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  padding: 6px 11px;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--dim);
+  transition: color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.chip:hover { color: var(--ink); border-color: #5a4d60; }
+.chip[aria-pressed="true"] {
+  color: var(--ink);
+  border-color: var(--blood);
+  box-shadow: inset 0 0 12px rgba(209, 26, 42, 0.25);
+}
+.reroll span { display: inline-block; transition: transform 0.5s; }
+.reroll:active span { transform: rotate(-180deg); }
+
+.out-wrap { position: relative; }
+.hint {
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  z-index: 1;
+  padding: 0 6px;
+  background: #0d0a0f;
+  font-size: 0.62rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--dim);
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+.out-wrap:hover .hint { opacity: 1; }
+
+/* Hauteur bornée et défilement : les marques débordent sinon sur les boutons
+   et voleraient leurs clics */
+.out {
+  min-height: 8.5rem;
+  max-height: 52vh;
+  overflow: auto;
+  padding: 2.4rem 18px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--faint);
+  border-radius: 3px;
+  font: 1.5rem/2.3 var(--zalgo);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: copy;
+  user-select: all;
+  transition: border-color 0.25s, box-shadow 0.25s;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.out:hover { border-color: rgba(209, 26, 42, 0.55); box-shadow: 0 0 30px -8px rgba(209, 26, 42, 0.35) inset; }
+.out:empty::before {
+  content: attr(data-placeholder);
+  font: italic 500 1.3rem/1.4 var(--serif);
+  color: #4d4652;
+}
+.out.taken { animation: taken 0.55s steps(1) 1, flash 0.55s ease-out 1; }
+.out.shiver { animation: shiver 0.3s steps(2) 1; }
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+.count { font-size: 0.7rem; letter-spacing: 0.1em; color: var(--dim); }
+
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 26px;
+  background: rgba(209, 26, 42, 0.08);
+  border: 1px solid var(--blood);
+  border-radius: 2px;
+  color: var(--blood-hi);
+  font-size: 0.85rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  transition: background 0.2s, color 0.2s, box-shadow 0.25s;
+}
+.copy:hover {
+  background: rgba(209, 26, 42, 0.18);
+  color: #fff;
+  box-shadow: 0 0 28px rgba(209, 26, 42, 0.45);
+}
+.copy.done { background: var(--blood); color: #fff; box-shadow: 0 0 40px rgba(255, 51, 70, 0.7); }
+.copy kbd {
+  font: inherit;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  opacity: 0.55;
+}
+
+.foot {
+  margin-top: 34px;
+  text-align: center;
+  font-size: 0.66rem;
+  letter-spacing: 0.2em;
+  color: #544c59;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(28px, env(safe-area-inset-bottom));
+  z-index: 60;
+  padding: 12px 28px;
+  transform: translate(-50%, 20px);
+  background: #0b0709;
+  border: 1px solid var(--blood);
+  font: 1.4rem/1.8 var(--zalgo);
+  color: var(--ink);
+  box-shadow: 0 0 40px rgba(209, 26, 42, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.25s;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@keyframes taken {
+  0% { transform: translate(4px, -2px) skewX(-6deg); filter: invert(1) hue-rotate(180deg); }
+  18% { transform: translate(-5px, 1px); filter: none; }
+  36% { transform: translate(2px, 2px) skewX(4deg); filter: invert(1); }
+  54% { transform: none; filter: none; }
+}
+@keyframes flash {
+  0% { box-shadow: 0 0 60px rgba(255, 51, 70, 0.8) inset; border-color: var(--blood-hi); }
+}
+@keyframes shiver {
+  0% { transform: translateX(-3px); opacity: 0.6; }
+  50% { transform: translateX(3px); }
+}
+
+@media (max-width: 560px) {
+  .head { padding: 2.4rem 0 1.6rem; }
+  .altar { padding: 16px; }
+  .bar { flex-direction: column-reverse; align-items: stretch; }
+  .copy { justify-content: center; padding: 16px; }
+  .count { text-align: center; }
+  .out { font-size: 1.35rem; }
+}
+@media (hover: none) {
+  .copy kbd { display: none; }
+  .hint { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .out.taken, .out.shiver { animation: none; }
+}
