@@ -173,7 +173,7 @@ body::after {
 }
 
 button { font: inherit; color: inherit; cursor: pointer; }
-button:focus-visible, textarea:focus-visible, input:focus-visible, .out:focus-visible {
+button:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-visible, .out:focus-visible {
   outline: 1px solid var(--blood-hi);
   outline-offset: 3px;
 }
@@ -369,12 +369,35 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px 16px;
   margin-top: 34px;
   text-align: center;
   font-size: 0.66rem;
   letter-spacing: 0.2em;
   color: #544c59;
 }
+.lang {
+  padding: 3px 6px;
+  background: transparent;
+  border: 1px solid var(--faint);
+  border-radius: 2px;
+  color: var(--dim);
+  font: inherit;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+.lang:hover { color: var(--ink); border-color: var(--line); }
+.lang option { background: var(--bg); color: var(--ink); }
+
+/* Panneau masqué tant que la langue n'est pas appliquée, pour ne pas montrer
+   l'anglais du HTML à un visiteur francophone. Il réapparaît de toute façon
+   après 1,5 s si le script ne tourne pas. */
+html:not(.i18n) .wrap { visibility: hidden; animation: reveal 0s 1.5s forwards; }
+@keyframes reveal { to { visibility: visible; } }
 
 .toast {
   position: fixed;

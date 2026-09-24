@@ -29,7 +29,7 @@ def main() -> None:
     try:
         with sync_playwright() as pw:
             browser = pw.chromium.launch(channel="chrome", headless=True)
-            ctx = browser.new_context(permissions=["clipboard-read", "clipboard-write"])
+            ctx = browser.new_context(locale="fr-FR", permissions=["clipboard-read", "clipboard-write"])
             page = ctx.new_page()
             errors = []
             page.on("console", lambda m: m.type in ("error", "warning") and errors.append(m.text))
@@ -71,6 +71,36 @@ def main() -> None:
             t1 = page.text_content("#title")
             time.sleep(0.6)
             check(page.text_content("#title") != t1, "le titre se recorrompt", failures)
+
+            check(page.text_content("label[for=src]") == "ton texte" and page.get_attribute("html", "lang") == "fr",
+                  "navigateur français : interface en français", failures)
+
+            # Langue suivant le navigateur, l'URL et le sélecteur
+            def ui(locale: str, query: str = "") -> tuple:
+                c = browser.new_context(locale=locale)
+                p = c.new_page()
+                p.on("pageerror", lambda e: errors.append(str(e)))
+                p.goto(f"http://127.0.0.1:18090/{query}", wait_until="load")
+                return c, p
+
+            for locale, label in (("en-US", "your text"), ("de-DE", "dein Text"), ("pt-BR", "seu texto"), ("ja-JP", "your text")):
+                c, p = ui(locale)
+                check(p.text_content("label[for=src]") == label, f"navigateur {locale} : « {label} »", failures)
+                c.close()
+
+            c, p = ui("fr-FR", "?lang=es")
+            check(p.text_content("label[for=src]") == "tu texto" and p.text_content("#copy-label") == "copiar",
+                  "?lang=es l'emporte sur le navigateur", failures)
+            c.close()
+
+            c, p = ui("fr-FR")
+            p.select_option("#lang", "it")
+            check(p.text_content("label[for=src]") == "il tuo testo", "le sélecteur change la langue", failures)
+            p.fill("#src", "ciao")
+            check(p.text_content("#count").endswith("caratteri"), "compteur traduit", failures)
+            p.reload(wait_until="load")
+            check(p.text_content("label[for=src]") == "il tuo testo", "le choix de langue est mémorisé", failures)
+            c.close()
 
             check(not errors, f"aucune erreur console ({errors[:3]})", failures)
             browser.close()

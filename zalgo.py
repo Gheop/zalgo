@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Ajoute des diacritiques combinants autour des lettres, façon « texte glitché ».
+"""Pile combining diacritics around letters for a glitched "zalgo" look.
 
-Exemples :
-    ./zalgo.py banale
-    echo "extraordinaire" | ./zalgo.py -i 1
-    ./zalgo.py -i 3 --seed 42 "c'est banal"
+Examples:
+    ./zalgo.py "he comes"
+    echo "extraordinary" | ./zalgo.py -i 1
+    ./zalgo.py -i 3 --seed 42 "nothing to see here"
 """
 
 import argparse
@@ -54,16 +54,16 @@ def glitch(text: str, level: int = 2, seed: int | None = None) -> str:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Transforme du texte en texte glitché (zalgo).")
-    parser.add_argument("text", nargs="*", help="texte à transformer (sinon lu sur l'entrée standard)")
+    parser = argparse.ArgumentParser(description="Turn text into glitched zalgo text.")
+    parser.add_argument("text", nargs="*", help="text to transform (read from stdin otherwise)")
     parser.add_argument("-i", "--intensity", type=int, choices=LEVELS, default=2,
-                        help="1 = discret, 2 = moyen (défaut), 3 = chaotique")
-    parser.add_argument("--seed", type=int, help="graine pour obtenir toujours le même résultat")
+                        help="1 = subtle, 2 = medium (default), 3 = chaotic")
+    parser.add_argument("--seed", type=int, help="seed to always get the same output")
     args = parser.parse_args()
 
     text = " ".join(args.text) if args.text else sys.stdin.read().rstrip("\n")
     if not text:
-        parser.error("donner un texte en argument ou sur l'entrée standard")
+        parser.error("give some text as an argument or on stdin")
     print(glitch(text, args.intensity, args.seed))
 
 

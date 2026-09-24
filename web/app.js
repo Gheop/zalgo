@@ -1,4 +1,5 @@
 import { ALL_PARTS, corrupt, purify, rand32 } from "./zalgo.js";
+import { LANGS, STRINGS, countLabel, pickLang } from "./i18n.js";
 
 const $ = (id) => document.getElementById(id);
 const input = $("src");
@@ -15,11 +16,14 @@ const purifyBtn = $("purify");
 const title = $("title");
 const sub = $("sub");
 const chips = [...document.querySelectorAll(".chip[data-part]")];
+const langSelect = $("lang");
 
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const parts = { ...ALL_PARTS };
 let seed = rand32();
 let result = "";
+let lang = "en";
+let t = STRINGS.en;
 
 const STORE = "zalgo:v1";
 function load() {
@@ -39,12 +43,8 @@ function save() {
 }
 
 function levelName(v) {
-  if (v === 0) return "pur";
-  if (v < 20) return "murmure";
-  if (v < 45) return "trouble";
-  if (v < 70) return "possédé";
-  if (v < 90) return "abîme";
-  return corrupt("IL VIENT", 0.25, ALL_PARTS, 7);
+  const i = v === 0 ? 0 : v < 20 ? 1 : v < 45 ? 2 : v < 70 ? 3 : v < 90 ? 4 : 5;
+  return i === 5 ? corrupt(t.levels[5], 0.25, ALL_PARTS, 7) : t.levels[i];
 }
 
 function autogrow() {
@@ -60,7 +60,7 @@ function render() {
   level.style.setProperty("--p", v + "%");
   levelVal.textContent = levelName(v);
   const n = [...result].length;
-  count.textContent = input.value ? `${n} caractère${n > 1 ? "s" : ""}` : "";
+  count.textContent = input.value ? countLabel(lang, n) : "";
   purifyBtn.classList.toggle("hot", purify(input.value) !== input.value.normalize("NFC"));
   chips.forEach((b) => b.setAttribute("aria-pressed", parts[b.dataset.part]));
   save();
@@ -75,7 +75,7 @@ function fallbackCopy(text) {
   ta.select();
   const ok = document.execCommand("copy");
   ta.remove();
-  if (!ok) throw new Error("copie refusée");
+  if (!ok) throw new Error("copy refused");
 }
 
 let toastTimer;
@@ -87,7 +87,7 @@ function notify(msg, readable) {
   toastTimer = setTimeout(() => {
     toast.classList.remove("show");
     copyBtn.classList.remove("done");
-    copyLabel.textContent = "copier";
+    copyLabel.textContent = t.copy;
   }, 1500);
 }
 
@@ -100,7 +100,7 @@ function restart(el, cls) {
 async function copy() {
   if (!result) {
     input.focus();
-    notify("écris d'abord", "Écris d'abord un texte.");
+    notify(t.toastEmpty, t.liveEmpty);
     return;
   }
   try {
@@ -108,14 +108,14 @@ async function copy() {
     else fallbackCopy(result);
   } catch {
     try { fallbackCopy(result); } catch {
-      notify("refusé", "Le navigateur a refusé la copie. Sélectionne le résultat à la main.");
+      notify(t.toastRefused, t.liveRefused);
       return;
     }
   }
   restart(out, "taken");
   copyBtn.classList.add("done");
-  copyLabel.textContent = "copié";
-  notify("copié", "Copié dans le presse-papiers.");
+  copyLabel.textContent = t.copied;
+  notify(t.toastCopied, t.liveCopied);
 }
 
 function reroll() {
@@ -181,28 +181,53 @@ function tickTitle() {
   setTimeout(tickTitle, 90 + Math.random() * 80);
 }
 
-const WHISPERS = [
-  "écris ce qui doit être corrompu…",
-  "il attend ton texte…",
-  "nomme-le, et il viendra…",
-  "chaque lettre a un prix…",
-  "tape. ne regarde pas derrière toi.",
-];
 let whisper = 0;
 function tickWhisper() {
   if (!input.value && document.activeElement !== input) {
     input.classList.add("fade");
     setTimeout(() => {
-      whisper = (whisper + 1) % WHISPERS.length;
-      input.placeholder = WHISPERS[whisper];
+      whisper = (whisper + 1) % t.whispers.length;
+      input.placeholder = t.whispers[whisper];
       input.classList.remove("fade");
     }, 600);
   }
   document.title = corrupt("zalgo", 0.2, ALL_PARTS, rand32());
 }
 
+// Textes statiques en anglais dans le HTML, remplacés ici selon la langue
+function applyLang(code) {
+  lang = code;
+  t = STRINGS[code];
+  document.documentElement.lang = code;
+  document.querySelector('meta[name="description"]').content = t.description;
+  for (const el of document.querySelectorAll("[data-i18n]")) el.textContent = t[el.dataset.i18n];
+  for (const el of document.querySelectorAll("[data-i18n-title]")) el.title = t[el.dataset.i18nTitle];
+  for (const el of document.querySelectorAll("[data-i18n-aria]")) el.setAttribute("aria-label", t[el.dataset.i18nAria]);
+  for (const el of document.querySelectorAll("[data-i18n-placeholder]")) el.dataset.placeholder = t[el.dataset.i18nPlaceholder];
+  sub.textContent = corrupt(t.tagline, 0.12, ALL_PARTS, 1337);
+  whisper = 0;
+  input.placeholder = t.whispers[0];
+  if (!copyBtn.classList.contains("done")) copyLabel.textContent = t.copy;
+  langSelect.value = code;
+}
+
+const LANG_STORE = "zalgo:lang";
+function initLang() {
+  let saved = null;
+  try { saved = localStorage.getItem(LANG_STORE); } catch { /* stockage indisponible */ }
+  const param = new URLSearchParams(location.search).get("lang");
+  for (const [code, name] of Object.entries(LANGS)) langSelect.add(new Option(name, code));
+  applyLang(pickLang({ param, saved, browser: navigator.languages ?? [navigator.language] }));
+  langSelect.addEventListener("change", () => {
+    applyLang(langSelect.value);
+    render();
+    try { localStorage.setItem(LANG_STORE, lang); } catch { /* navigation privée */ }
+  });
+  document.documentElement.classList.add("i18n");
+}
+
+initLang();
 load();
-sub.textContent = corrupt("il vient", 0.12, ALL_PARTS, 1337);
 autogrow();
 render();
 if (reducedMotion) {

@@ -2,35 +2,37 @@
 
 **→ [zalgo.gheop.com](https://zalgo.gheop.com)**
 
-Tape un texte, il se corrompt sous tes yeux, un clic et il est copié. Des diacritiques combinants s'empilent au-dessus, en dessous et en travers de chaque lettre, jusqu'à déborder sur les lignes voisines.
+Type some text, watch it rot, copy it in one click. Combining diacritics pile up above, below and through every letter until they spill onto the neighbouring lines.
 
-[![Capture de zalgo.gheop.com](docs/screenshot.webp)](https://zalgo.gheop.com)
+[![Screenshot of zalgo.gheop.com](docs/screenshot.webp)](https://zalgo.gheop.com)
 
-Tout se passe dans le navigateur : aucun texte n'est envoyé au serveur.
+Everything runs in your browser: no text is ever sent to the server.
 
-## Utilisation
+The interface speaks English, French, Spanish, German, Italian, Portuguese and Dutch. It follows your browser language, falls back to English, and can be switched from the footer or with `?lang=xx` in the URL (for example [`?lang=fr`](https://zalgo.gheop.com/?lang=fr)).
 
-- Taper le texte, régler la corruption (0 à 100) et les zones touchées : dessus, travers, dessous.
-- Cliquer sur le résultat ou sur « copier » (raccourci : Ctrl+Entrée, ⌘+Entrée sur Mac).
-- « relancer » (Alt+R) retire les marques au sort. Taper une lettre de plus ne change pas celles déjà corrompues.
-- « purifier » nettoie un texte zalgo collé. Une marque seule n'est gardée que si elle forme une lettre accentuée du Latin-1 (é, ç, ñ, û…). Limite : un « û » posé par le zalgo est identique à un « û » tapé et reste en place.
+## Usage
 
-En ligne de commande, `zalgo.py` fait la même chose avec les mêmes listes de marques :
+- Type your text, set the corruption level (0 to 100) and pick the zones: above, through, below.
+- Click the result or the "copy" button (shortcut: Ctrl+Enter, ⌘+Enter on Mac).
+- "reroll" (Alt+R) draws new marks. Typing one more letter never reshuffles the ones already corrupted.
+- "purify" cleans pasted zalgo text. A lone mark is kept only when it forms a Latin-1 accented letter (é, ç, ñ, ü…). Limit: a "û" produced by zalgo is identical to a typed "û" and stays.
+
+The command line version does the same with the same mark lists:
 
 ```sh
-./zalgo.py -i 3 "il vient"
-echo "extraordinaire" | ./zalgo.py -i 1
+./zalgo.py -i 3 "he comes"
+echo "extraordinary" | ./zalgo.py -i 1
 ```
 
-## Héberger sa copie
+## Host your own copy
 
-La page est statique, sans build : n'importe quel serveur de fichiers convient.
+The page is static, with no build step: any file server works.
 
 ```sh
 cd web && python3 -m http.server 8000
 ```
 
-Pour la servir comme en production, avec la compression, le cache long des polices et la politique de sécurité de contenu de `web/nginx.conf` :
+To serve it like production, with compression, long-lived font caching and the content security policy from `web/nginx.conf`:
 
 ```sh
 podman run --rm -p 8080:8080 \
@@ -39,44 +41,53 @@ podman run --rm -p 8080:8080 \
   docker.io/nginxinc/nginx-unprivileged:1.29-alpine
 ```
 
-`docker` remplace `podman` sans autre changement. Le TLS et HSTS sont à ajouter par le proxy placé devant.
+`docker` works in place of `podman`. TLS and HSTS belong to whatever proxy sits in front.
 
-## Organisation
+## Layout
 
-- `web/` : la page. `zalgo.js` contient la logique pure (corruption, purification), `app.js` l'interface, `nginx.conf` la config du serveur.
-- `web/fonts/` : Cormorant Garamond italique pour le titre, et un sous-ensemble de Noto Serif (latin + marques U+0300 à U+036F) pour le résultat. Sans lui, les polices système de repli dessinent les marques en blocs carrés.
-- `zalgo.py` : la version en ligne de commande.
-- `tests/` : tests unitaires (JS et Python) et test de bout en bout.
-- `bench/` : banc de performance et journal des optimisations (voir `PERF.md`).
+- `web/`: the page. `zalgo.js` holds the pure logic (corruption, purification), `i18n.js` the translations and language choice, `app.js` the interface, `nginx.conf` the server config.
+- `web/fonts/`: Cormorant Garamond italic for the title, and a subset of Noto Serif (Latin + marks U+0300 to U+036F) for the result. Without it, fallback system fonts draw the marks as square blocks.
+- `zalgo.py`: the command line version.
+- `tests/`: unit tests (JS and Python) and an end-to-end test.
+- `bench/`: performance bench and optimisation log (see `PERF.md`, in French).
+
+## Adding a language
+
+Add an entry to `LANGS` and `STRINGS` in `web/i18n.js`, with the same keys as English. `npm test` fails if a key is missing or has the wrong shape. Languages whose accents live outside Latin-1 (Polish, Czech…) would also need `purify` to keep those letters.
 
 ## Tests
 
 ```sh
-npm test                 # unitaires JS (node:test) + Python (unittest), sans dépendance
-python3 tests/e2e.py web # bout en bout : vrai nginx (podman) + Chrome headless
+npm test                 # JS (node:test) + Python (unittest) unit tests, no dependencies
+python3 tests/e2e.py web # end to end: real nginx (podman) + headless Chrome
 ```
 
-Le test de bout en bout demande `podman`, Google Chrome et `pip install playwright`. La CI (`.github/workflows/test.yml`) lance les deux.
+The end-to-end test needs `podman`, Google Chrome and `pip install playwright`. CI (`.github/workflows/test.yml`) runs both.
 
-## Licence
+## License
 
-Code sous licence MIT (voir `LICENSE`). Les polices de `web/fonts/` (Cormorant Garamond, Noto Serif) restent sous SIL Open Font License 1.1.
+Code under the MIT license (see `LICENSE`). The fonts in `web/fonts/` (Cormorant Garamond, Noto Serif) remain under the SIL Open Font License 1.1.
 
 ## Changelog
 
-### v1.1.0 — Ambiance visible et page plus sobre (2026-09-24)
+### v1.2.0 — Seven languages (2026-09-24)
 
-- La lueur rouge et l'écho géant du texte s'affichent enfin : un fond mal placé les masquait depuis la v1.0.0
-- La page consomme nettement moins au repos : les effets d'ambiance suivent l'horloge du titre (8 images/s au lieu de 60) et le halo du titre n'est plus repeint à chaque tirage
-- Suite de tests (unitaires JS et Python, bout en bout) et CI GitHub Actions
+- Interface in English, French, Spanish, German, Italian, Portuguese and Dutch
+- Language follows the browser, falls back to English, can be switched from the footer or with `?lang=`; the choice is remembered
+- README and command line help in English
 
-### v1.0.1 — Purification plus stricte (2026-09-24)
+### v1.1.0 — Visible ambience, lighter page (2026-09-24)
 
-- « purifier » retire désormais les marques isolées qui ne forment pas une lettre accentuée courante (Ċ, r̃, ṅ disparaissent, é et ç restent)
-- Le bouton « purifier » s'allume dès qu'il reste quelque chose à nettoyer, même une seule marque
+- The red glow and the giant echo of your text finally show up: a misplaced background had been hiding them since v1.0.0
+- The page uses much less CPU when idle: ambient effects follow the title clock (8 frames per second instead of 60) and the title halo is no longer repainted on every roll
+- Test suite (JS and Python unit tests, end to end) and GitHub Actions CI
 
-### v1.0.0 — Page web zalgo.gheop.com (2026-09-24)
+### v1.0.1 — Stricter purification (2026-09-24)
 
-- Page web pour corrompre un texte et le copier en un clic
-- Réglage de l'intensité et des zones (dessus, travers, dessous), nouveau tirage, purification
-- Mise en ligne sur zalgo.gheop.com
+- "purify" now removes lone marks that don't form a common accented letter (Ċ, r̃, ṅ go away, é and ç stay)
+- The "purify" button lights up as soon as there is anything left to clean, even a single mark
+
+### v1.0.0 — zalgo.gheop.com goes live (2026-09-24)
+
+- Web page to corrupt text and copy it in one click
+- Intensity and zones (above, through, below), reroll, purification
