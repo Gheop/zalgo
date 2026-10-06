@@ -10,6 +10,12 @@ on:
 permissions:
   contents: read
 
+# Un nouveau push sur une PR annule le run précédent, devenu obsolète ; sur main,
+# chaque commit garde son run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   unit:
     runs-on: ubuntu-24.04
