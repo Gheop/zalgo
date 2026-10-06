@@ -36,6 +36,11 @@ def main() -> None:
             page.on("pageerror", lambda e: errors.append(str(e)))
             page.goto("http://127.0.0.1:18090/", wait_until="load")
 
+            for path in ("/", "/app.js", "/fonts/noto-serif-zalgo.woff2"):
+                headers = page.request.get(f"http://127.0.0.1:18090{path}").headers
+                missing = [h for h in ("content-security-policy", "x-content-type-options", "referrer-policy") if h not in headers]
+                check(not missing, f"en-têtes de sécurité sur {path} {missing or ''}", failures)
+
             page.fill("#src", "il vient")
             out = page.text_content("#out")
             check(out.startswith("i") and page.evaluate(f"(s) => {MARK}.test(s)", out), "le résultat est corrompu", failures)
