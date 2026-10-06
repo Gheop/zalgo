@@ -1,7 +1,10 @@
 name: test
 
 on:
+  # main seulement : un push de tag ou de branche relançait la CI sur un commit
+  # déjà testé ; les autres branches passent par leur pull request
   push:
+    branches: [main]
   pull_request:
 
 permissions:
