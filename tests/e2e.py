@@ -36,7 +36,8 @@ def main() -> None:
             page.on("pageerror", lambda e: errors.append(str(e)))
             page.goto("http://127.0.0.1:18090/", wait_until="load")
 
-            for path in ("/", "/app.js", "/fonts/noto-serif-zalgo.woff2"):
+            font = "/" + page.get_attribute("link[rel=preload][as=font]", "href")
+            for path in ("/", "/app.js", font):
                 headers = page.request.get(f"http://127.0.0.1:18090{path}").headers
                 missing = [h for h in ("content-security-policy", "x-content-type-options", "referrer-policy") if h not in headers]
                 check(not missing, f"en-têtes de sécurité sur {path} {missing or ''}", failures)
@@ -121,6 +122,10 @@ def main() -> None:
             p.reload(wait_until="load")
             check(p.text_content("label[for=src]") == "il tuo testo", "le choix de langue est mémorisé", failures)
             c.close()
+
+            fonts = page.evaluate("document.fonts.ready.then(() => [...document.fonts].map((f) => f.family + ':' + f.status))")
+            check(sorted(fonts) == ['"Cormorant":loaded', '"ZalgoSerif":loaded'] or sorted(fonts) == ["Cormorant:loaded", "ZalgoSerif:loaded"],
+                  f"les 2 polices sont chargées {fonts}", failures)
 
             check(not errors, f"aucune erreur console ({errors[:3]})", failures)
             browser.close()
