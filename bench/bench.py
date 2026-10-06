@@ -20,7 +20,7 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-IMAGE = "docker.io/nginxinc/nginx-unprivileged:1.29-alpine"
+IMAGE = "docker.io/nginxinc/nginx-unprivileged:1.30-alpine"
 TEXT = "il vient, et personne ne l'arrêtera avant la fin du monde"
 IDLE_WARMUP_S = 2
 IDLE_WINDOW_S = 10

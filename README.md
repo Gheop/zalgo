@@ -38,7 +38,7 @@ To serve it like production, with compression, long-lived font caching and the c
 podman run --rm -p 8080:8080 \
   -v "$PWD/web:/usr/share/nginx/html:ro" \
   -v "$PWD/web/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
-  docker.io/nginxinc/nginx-unprivileged:1.29-alpine
+  docker.io/nginxinc/nginx-unprivileged:1.30-alpine
 ```
 
 `docker` works in place of `podman`. TLS and HSTS belong to whatever proxy sits in front.
@@ -70,6 +70,10 @@ Code under the MIT license (see `LICENSE`). The fonts in `web/fonts/` (Cormorant
 
 ## Changelog
 
+### v1.3.0 — Hardening after audit (2026-10-06)
+
+- Server image moved to nginx 1.30, the maintained stable branch (1.29 no longer receives fixes)
+
 ### v1.2.0 — Seven languages (2026-09-24)
 
 - Interface in English, French, Spanish, German, Italian, Portuguese and Dutch
@@ -91,3 +95,9 @@ Code under the MIT license (see `LICENSE`). The fonts in `web/fonts/` (Cormorant
 
 - Web page to corrupt text and copy it in one click
 - Intensity and zones (above, through, below), reroll, purification
+
+## README changelog
+
+| Version | Date       | Changes                                         |
+|---------|------------|-------------------------------------------------|
+| 1.0.0   | 2026-10-06 | Track README revisions, update nginx image to 1.30 |
