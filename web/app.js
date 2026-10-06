@@ -166,11 +166,11 @@ if (/Mac|iPhone|iPad/.test(navigator.platform)) $("kbd").textContent = "⌘ ↵"
 // transform et opacity changent, sur des calques à part : pas de repeinture.
 const glow = $("glow");
 const fx = $("fx");
-function ambient(t) {
-  glow.style.opacity = (0.775 + 0.225 * Math.cos((2 * Math.PI * t) / 9)).toFixed(3);
+function ambient(seconds) {
+  glow.style.opacity = (0.775 + 0.225 * Math.cos((2 * Math.PI * seconds) / 9)).toFixed(3);
   fx.style.transform = `translate(${(Math.random() * 14 - 7).toFixed(1)}%, ${(Math.random() * 16 - 8).toFixed(1)}%)`;
   // Aller-retour de 40 s, même amplitude que l'ancienne animation drift
-  const p = (1 - Math.cos((Math.PI * t) / 40)) / 2;
+  const p = (1 - Math.cos((Math.PI * seconds) / 40)) / 2;
   echo.style.transform = `translate(${(-2 + 4 * p).toFixed(2)}%, ${(-1 + 2.5 * p).toFixed(2)}%) `
     + `rotate(${(-1.5 + 2.5 * p).toFixed(2)}deg) scale(${(1.02 - 0.04 * p).toFixed(4)})`;
 }
