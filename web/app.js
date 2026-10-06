@@ -158,7 +158,9 @@ document.addEventListener("keydown", (e) => {
   else if (e.altKey && e.code === "KeyR") { e.preventDefault(); reroll(); }
 });
 
-if (/Mac|iPhone|iPad/.test(navigator.platform)) $("kbd").textContent = "⌘ ↵";
+// navigator.platform est déprécié ; userAgentData n'existe que sous Chromium
+const platform = navigator.userAgentData?.platform ?? navigator.platform ?? "";
+if (/Mac|iPhone|iPad|macOS|iOS/.test(platform)) $("kbd").textContent = "⌘ ↵";
 
 // Lueur, grain et dérive de l'écho suivent l'horloge du titre (~8 images/s).
 // En animations CSS infinies, Chrome recomposait toute la page à 60 images/s,
