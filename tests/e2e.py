@@ -84,6 +84,17 @@ def main() -> None:
             check(page.text_content("label[for=src]") == "ton texte" and page.get_attribute("html", "lang") == "fr",
                   "navigateur français : interface en français", failures)
 
+            # Stockage abîmé : valeurs de mauvais type et clé __proto__
+            c = browser.new_context(locale="fr-FR")
+            c.add_init_script("""try { localStorage.setItem('zalgo:v1', '{"text":123,"level":"abc","seed":"x","parts":{"__proto__":{"evil":1},"above":"yes","below":false}}'); } catch {}""")
+            p = c.new_page()
+            p.on("pageerror", lambda e: errors.append(str(e)))
+            p.goto("http://127.0.0.1:18090/", wait_until="load")
+            pressed = [p.get_attribute(f".chip[data-part='{k}']", "aria-pressed") for k in ("above", "through", "below")]
+            check(pressed == ["true", "true", "false"] and p.input_value("#src") == "" and p.input_value("#level") == "35",
+                  f"stockage abîmé ignoré proprement {pressed}", failures)
+            c.close()
+
             # Langue suivant le navigateur, l'URL et le sélecteur
             def ui(locale: str, query: str = "") -> tuple:
                 c = browser.new_context(locale=locale)

@@ -37,7 +37,9 @@ function load() {
     if (!saved) return;
     if (typeof saved.text === "string") input.value = saved.text.slice(0, MAX_CHARS);
     if (Number.isFinite(saved.level)) level.value = saved.level;
-    if (saved.parts) Object.assign(parts, saved.parts);
+    // Seules les clés connues, en booléens : un stockage ancien ou abîmé ne doit
+    // rien injecter d'autre dans l'état
+    for (const k of Object.keys(ALL_PARTS)) if (typeof saved.parts?.[k] === "boolean") parts[k] = saved.parts[k];
     if (Number.isFinite(saved.seed)) seed = saved.seed;
   } catch { /* stockage indisponible : on part des valeurs par défaut */ }
 }
