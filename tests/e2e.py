@@ -73,6 +73,10 @@ def main() -> None:
             page.click("#purify")
             check(page.input_value("#src") == "Corrption l'arrêtera", "purifier retire le zalgo et garde les accents", failures)
 
+            page.fill("#src", "x" * 20_000)
+            check(len(page.input_value("#src")) == 5000, "un collage de 20 000 caractères est tronqué à 5 000", failures)
+            check("5" in page.text_content("#live") and "Limite" in page.text_content("#live"), "message de limite", failures)
+
             t1 = page.text_content("#title")
             time.sleep(0.6)
             check(page.text_content("#title") != t1, "le titre se recorrompt", failures)

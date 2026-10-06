@@ -22,6 +22,7 @@ test("6 niveaux, 5 murmures et un {n} dans chaque forme du compteur", () => {
     assert.equal(s.levels.length, 6, code);
     assert.equal(s.whispers.length, 5, code);
     for (const form of Object.values(s.count)) assert.ok(form.includes("{n}"), `${code}: ${form}`);
+    assert.ok(s.liveLimit.includes("{n}"), `${code}.liveLimit sans {n}`);
   }
 });
 
@@ -50,4 +51,13 @@ test("compteur au singulier et au pluriel", () => {
   assert.equal(countLabel("en", 5), "5 characters");
   assert.equal(countLabel("de", 5), "5 Zeichen");
   assert.equal(countLabel("en", 1234), "1,234 characters");
+});
+
+test("la limite du champ (maxlength) et celle du script (MAX_CHARS) sont égales", () => {
+  const html = readFileSync(new URL("../web/index.html", import.meta.url), "utf8");
+  const app = readFileSync(new URL("../web/app.js", import.meta.url), "utf8");
+  const fromHtml = Number(html.match(/id="src"[^>]*maxlength="(\d+)"/)?.[1]);
+  const fromJs = Number(app.match(/const MAX_CHARS = (\d+);/)?.[1]);
+  assert.ok(fromHtml > 0, "maxlength absent du champ");
+  assert.equal(fromHtml, fromJs);
 });

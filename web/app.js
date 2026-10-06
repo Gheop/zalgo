@@ -25,12 +25,17 @@ let result = "";
 let lang = "en";
 let t = STRINGS.en;
 
+// Au-delà, chaque frappe gèle la page : 2,2 s pour 100 000 caractères à 100 %
+// de corruption, contre ~80 ms à cette limite. Doit rester égal au maxlength
+// du champ dans index.html.
+const MAX_CHARS = 5000;
+
 const STORE = "zalgo:v1";
 function load() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORE) || "null");
     if (!saved) return;
-    if (typeof saved.text === "string") input.value = saved.text;
+    if (typeof saved.text === "string") input.value = saved.text.slice(0, MAX_CHARS);
     if (Number.isFinite(saved.level)) level.value = saved.level;
     if (saved.parts) Object.assign(parts, saved.parts);
     if (Number.isFinite(saved.seed)) seed = saved.seed;
@@ -124,7 +129,11 @@ function reroll() {
   restart(out, "shiver");
 }
 
-input.addEventListener("input", () => { autogrow(); render(); });
+input.addEventListener("input", () => {
+  if (input.value.length >= MAX_CHARS) notify(t.toastLimit, t.liveLimit.replace("{n}", MAX_CHARS.toLocaleString(lang)));
+  autogrow();
+  render();
+});
 level.addEventListener("input", render);
 chips.forEach((b) => b.addEventListener("click", () => {
   parts[b.dataset.part] = !parts[b.dataset.part];
