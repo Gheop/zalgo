@@ -14,10 +14,11 @@ The interface speaks English, French, Spanish, German, Italian, Portuguese and D
 
 - Type your text, set the corruption level (0 to 100) and pick the zones: above, through, below.
 - Click the result or the "copy" button (shortcut: Ctrl+Enter, ⌘+Enter on Mac).
+- Input is capped at 5,000 characters (about 2 to 3 paperback pages): beyond that, every keystroke would freeze the page.
 - "reroll" (Alt+R) draws new marks. Typing one more letter never reshuffles the ones already corrupted.
 - "purify" cleans pasted zalgo text. A lone mark is kept only when it forms a Latin-1 accented letter (é, ç, ñ, ü…). Limit: a "û" produced by zalgo is identical to a typed "û" and stays.
 
-The command line version does the same with the same mark lists:
+The command line version (Python 3.10 or later) does the same with the same mark lists:
 
 ```sh
 ./zalgo.py -i 3 "he comes"
@@ -53,9 +54,11 @@ podman run --rm -p 8080:8080 \
 
 ## Adding a language
 
-Add an entry to `LANGS` and `STRINGS` in `web/i18n.js`, with the same keys as English. `npm test` fails if a key is missing or has the wrong shape. Languages whose accents live outside Latin-1 (Polish, Czech…) would also need `purify` to keep those letters.
+Add an entry to `LANGS` and `STRINGS` in `web/i18n.js`, with the same keys as English. `npm test` fails if a key is missing or has the wrong shape. Languages whose accents live outside Latin-1 (Polish, Czech…) would also need `purify` to keep those letters, and possibly new glyphs in the Noto Serif subset. Font files carry the first 8 characters of their SHA-256 in their name because nginx caches them for a year: a regenerated font must be renamed, and `npm test` fails until it is.
 
 ## Tests
+
+Unit tests need Node 20 or later and Python 3.10 or later, nothing else.
 
 ```sh
 npm test                 # JS (node:test) + Python (unittest) unit tests, no dependencies
@@ -73,6 +76,10 @@ Code under the MIT license (see `LICENSE`). The fonts in `web/fonts/` (Cormorant
 ### v1.3.0 — Hardening after audit (2026-10-06)
 
 - Server image moved to nginx 1.30, the maintained stable branch (1.29 no longer receives fixes)
+- Input capped at 5,000 characters: a pasted chapter used to freeze the page for 2 seconds per keystroke
+- Fonts keep their security headers, and their file names change with their content so a year of caching can't serve a stale font
+- Saved settings are validated before reuse
+- More tests: reduced motion, copy fallback and refusal, mobile layout, security headers, font loading
 
 ### v1.2.0 — Seven languages (2026-09-24)
 
@@ -100,4 +107,5 @@ Code under the MIT license (see `LICENSE`). The fonts in `web/fonts/` (Cormorant
 
 | Version | Date       | Changes                                         |
 |---------|------------|-------------------------------------------------|
+| 1.1.0   | 2026-10-06 | Document requirements, input cap and font naming rule |
 | 1.0.0   | 2026-10-06 | Track README revisions, update nginx image to 1.30 |
