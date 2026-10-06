@@ -2,10 +2,14 @@ name: test
 
 on:
   # main seulement : un push de tag ou de branche relançait la CI sur un commit
-  # déjà testé ; les autres branches passent par leur pull request
+  # déjà testé ; les autres branches passent par leur pull request.
+  # Aucune vérification ne lit la documentation : un commit qui ne touche
+  # qu'elle ne lance rien.
   push:
     branches: [main]
+    paths-ignore: ["**.md", "docs/**", "LICENSE"]
   pull_request:
+    paths-ignore: ["**.md", "docs/**", "LICENSE"]
 
 permissions:
   contents: read
