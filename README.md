@@ -73,6 +73,10 @@ Code under the MIT license (see `LICENSE`). The fonts in `web/fonts/` (Cormorant
 
 ## Changelog
 
+### v1.3.1 — Lighter fonts (2026-10-06)
+
+- Fonts trimmed of typographic features the page never turns on (small caps, superscripts, fractions…): 14 KB less, same characters, pixel-identical rendering
+
 ### v1.3.0 — Hardening after audit (2026-10-06)
 
 - Server image moved to nginx 1.30, the maintained stable branch (1.29 no longer receives fixes)
@@ -108,6 +112,7 @@ Code under the MIT license (see `LICENSE`). The fonts in `web/fonts/` (Cormorant
 
 | Version | Date       | Changes                                         |
 |---------|------------|-------------------------------------------------|
+| 1.1.2   | 2026-10-06 | Add v1.3.1 changelog entry |
 | 1.1.1   | 2026-10-06 | Note gzip level 6 in the changelog |
 | 1.1.0   | 2026-10-06 | Document requirements, input cap and font naming rule |
 | 1.0.0   | 2026-10-06 | Track README revisions, update nginx image to 1.30 |

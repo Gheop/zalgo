@@ -3,7 +3,7 @@
    donc changer d'adresse. tests/assets.test.js le vérifie. */
 @font-face {
   font-family: "Cormorant";
-  src: url(fonts/cormorant-italic.4fb55a7a.woff2) format("woff2");
+  src: url(fonts/cormorant-italic.d56ea014.woff2) format("woff2");
   font-style: italic;
   font-weight: 500;
   font-display: swap;
@@ -12,7 +12,7 @@
    système de repli dessinent ces marques en blocs carrés. */
 @font-face {
   font-family: "ZalgoSerif";
-  src: url(fonts/noto-serif-zalgo.d1325718.woff2) format("woff2");
+  src: url(fonts/noto-serif-zalgo.16b20d4a.woff2) format("woff2");
   font-weight: 400;
   font-display: swap;
 }
