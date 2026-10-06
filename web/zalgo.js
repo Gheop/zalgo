@@ -19,7 +19,7 @@ export const ALL_PARTS = { above: true, through: true, below: true };
 
 const IS_BASE = /[\p{L}\p{N}]/u;
 
-export function mulberry32(a) {
+function mulberry32(a) {
   return () => {
     a = (a + 0x6d2b79f5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
