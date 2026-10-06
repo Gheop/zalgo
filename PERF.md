@@ -33,9 +33,15 @@ En cours de route, un bug est apparu : la lueur et l'écho étaient peints sous 
 - **Écho rendu à 1/4 puis agrandi ×4** (itération 3) : aucun effet. Chrome rastérise le calque agrandi à pleine résolution.
 - **Les ablations en composition logicielle** ont désigné le flou de l'écho et le `backdrop-filter` comme coûteux. Sur GPU matériel, ils ne coûtent presque rien : le proxy logiciel (SwiftShader, défaut de Chrome headless) exagère le prix de chaque calque plein écran et saturait un cœur (136 ms par frame), ce qui écrêtait la métrique.
 
+- **Passe 2 (v1.2.0), chargement.** Les modules bloquent le thread principal ~70 ms avant le premier affichage, dont ~60 ms de style et de mise en page forcés par `autogrow()`. La trace montre une seule mise en page complète, sans doublon : c'est la première mise en page de la page, avancée par le JS, pas du travail en trop.
+- **Passe 2, polices.** Retirer les polices web (Cormorant, Noto) ne fait gagner que 2 à 4 % sur l'affichage, dans le bruit. Le gros du coût au premier rendu venait ici de **JetBrains Mono**, installée sur la machine de mesure et choisie par la pile `--mono` : la remplacer par `monospace` avance l'affichage de 23 à 25 %. Couper ses 460 règles de ligatures ne change rien (−2 %) : c'est le chargement de la police elle-même (CFF, 144 Ko, parmi 16 fichiers). La seule parade serait de changer de police pour ces visiteurs, un changement visuel qui ne concerne que ceux qui l'ont installée.
+- **Passe 2, frappe.** Par frappe, le thread principal travaille ~9 ms, dont ~5 ms de mise en page. L'écho n'en prend que 0,8 ms ; le passer en Noto coûte 16 % de plus. `autogrow()` pèse 5 %, moins que la variation entre deux runs. Le panneau résultat (2,1 ms) est la fonctionnalité elle-même.
+
 ## Plafond atteint
 
-Sur GPU matériel, une page figée coûte ~4 % de CPU (plancher de Chrome headless). L'état final est à ~6 points au-dessus. Ce reste vient du tick du titre : ~8 tirages par seconde, chacun recalcule le texte, sa mise en page, sa peinture et une frame. Pour aller plus loin, il faudrait ralentir la corruption du titre ou la suspendre quand la fenêtre n'a pas le focus, ce qui change le comportement visible et se discute. Le chargement est dominé par les 2 polices (56 Ko sur 68), déjà réduites aux glyphes utiles et jugées optimales par patu.
+Mesuré à nouveau sur la v1.2.0 (passe 2, machine calme) : une page figée coûte 1,0 % de CPU, la page en marche 7,2 %. Les ~6 points restants sont le coût fixe d'une frame (démarrer, composer, présenter) multiplié par les ~8 ticks par seconde du titre : avec les ambiances seules, 5,4 % ; avec le titre seul, 7,2 % ; sans aucun des deux, 1,6 %. Aucun calque ne pèse plus de 0,6 point. Pour aller plus loin, il faudrait ralentir la corruption du titre ou la suspendre quand la fenêtre n'a pas le focus, ce qui change le comportement visible et se discute.
+
+Le premier affichage arrive vers 105 ms en local pour un visiteur sans JetBrains Mono, essentiellement la première mise en page. La frappe tourne à ~30 ms, proche d'une à deux frames, pour ~9 ms de travail réel.
 
 ## Reproduire
 
@@ -51,7 +57,7 @@ python3 bench/compare.py bench/results/ab.json
 taskset -c 12-21 python3 bench/bench.py --a web --render software --runs 10
 ```
 
-Le banc sert chaque version avec la vraie image `nginx-unprivileged` et `web/nginx.conf` (podman), et remplace `Math.random` par un générateur à graine fixe pour que le zalgo produit soit identique d'une passe à l'autre. Ne comparer que des versions mesurées dans la même session, en alternance : sur GPU matériel, les valeurs absolues varient beaucoup avec la charge de la machine.
+Mesures relevées : CPU au repos par processus, `ready_ms` (instant où le panneau devient visible, une fois la langue appliquée), `load_ms`, `fonts_ms`, octets, et latence de frappe. Le banc sert chaque version avec la vraie image `nginx-unprivileged` et `web/nginx.conf` (podman), et remplace `Math.random` par un générateur à graine fixe pour que le zalgo produit soit identique d'une passe à l'autre. Ne comparer que des versions mesurées dans la même session, en alternance : sur GPU matériel, les valeurs absolues varient beaucoup avec la charge de la machine.
 
 ## Surveiller
 

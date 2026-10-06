@@ -17,3 +17,16 @@ Les itérations 1 à 3 ont été mesurées en composition logicielle (SwiftShade
 | 4 | Sur GPU matériel, le décor ne coûte presque rien ; le halo `text-shadow` 38 px du titre est repeint à chaque tick (−44 % en ablation). Le déplacer sur un `::before` statique sur son propre calque | style.css | Rendu identique (écart moyen 1,2/255) ; renderer 9,3 → 3,4 % | **−43 %** (17,8 → 10,2 %) | frappe −8 % (bruit), +147 o | Retenu |
 | — | Découpage de la logique pure dans `web/zalgo.js` (module ES) pour les tests unitaires | index.html, app.js, zalgo.js | Pas une optimisation : contrôle de non-régression | −2,6 % (bruit) | +509 o, chargement et frappe dans le bruit | Neutre |
 | Final | Production v1.0.1 contre état final v1.1.0, GPU matériel | — | 8 passes finales sur 10 sous le minimum de la production | **−62 %** (39,2 → 14,7 %) | frappe −32 %, +1 036 o | — |
+
+## Passe 2 (v1.2.0)
+
+Baseline `bench/baseline.json` : A/A sur la v1.2.0, GPU matériel, épinglé. CPU au repos 7,0 % (cv 3 à 5 %, Δ A/A 1,4 %), panneau visible à 128 ms (`ready_ms`, ajouté au banc), frappe 30 ms en médiane (Δ A/A jusqu'à 13 %). Toutes les pistes ont été mesurées par ablation avant d'écrire du code : aucune n'a franchi le seuil, rien n'a été commité côté page.
+
+| # | Hypothèse | Fichiers | Résultat | Δ métrique | Δ garde-fous | Verdict |
+|---|-----------|----------|----------|-----------|--------------|---------|
+| 5 | Le chargement perd du temps dans une mise en page forcée par `autogrow()` (62 ms sur 71 ms d'exécution des modules) | — | Trace : une seule mise en page complète, sans doublon ; elle est avancée, pas dupliquée | — | — | Abandonné |
+| 6 | Les polices web retardent le premier affichage | — | Ablation à chaud : sans Cormorant −4 %, sans Noto −2 %, les deux −4 % : bruit. Le −35 % du premier essai venait d'un remplacement de la police monospace | — | — | Abandonné |
+| 7 | La pile `--mono` déclenche des recherches de polices absentes | — | Faux : JetBrains Mono est installée sur la machine de mesure. `monospace` à la place : −23 à −25 % ; ligatures ou `calt` coupés : −2 %. Le coût est le chargement de la police elle-même ; la seule parade change le rendu pour les visiteurs qui l'ont | ready −25 % (machine avec JetBrains Mono) | changement visuel | Non retenu |
+| 8 | Repos : un calque coûte plus que les autres | — | Plancher 1,0 %, page 7,2 % ; ambiances seules 5,4 %, sans titre ni ambiances 1,6 %. Retirer un calque : au plus −0,6 point. Coût fixe par frame × ~8 ticks/s | — | — | Plateau |
+| 9 | Frappe : l'écho (Cormorant + marques en Noto) fragmente la mise en forme du texte | — | Écho retiré : −9 % du thread principal (0,8 ms/frappe) ; écho en Noto : +16 % | — | — | Abandonné |
+| 10 | `autogrow()` double la mise en page du champ à chaque frappe | — | −5 % du thread principal, alors que la référence varie de 8,7 à 9,9 ms entre runs | bruit | — | Abandonné |

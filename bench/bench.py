@@ -42,6 +42,14 @@ SEEDED_RANDOM = """
 })();
 """
 
+# Instant où le panneau devient visible : app.js pose la classe i18n sur <html>
+# une fois la langue appliquée (le contenu est masqué avant)
+READY_PROBE = """
+new MutationObserver((_, obs) => {
+  if (document.documentElement?.classList.contains("i18n")) { window.__readyAt = performance.now(); obs.disconnect(); }
+}).observe(document, { subtree: true, attributes: true, attributeFilter: ["class"] });
+"""
+
 LOAD_METRICS_JS = """
 async () => {
   const lcp = await new Promise((resolve) => {
@@ -59,6 +67,7 @@ async () => {
     fcp_ms: fcp ? fcp.startTime : null,
     lcp_ms: lcp || null,
     load_ms: nav.loadEventEnd,
+    ready_ms: window.__readyAt ?? null,
     // Fin de réception de la dernière police : le titre et le résultat sont alors dans leur police finale
     fonts_ms: Math.max(0, ...res.filter((r) => r.name.endsWith(".woff2")).map((r) => r.responseEnd)),
     bytes: nav.transferSize + res.reduce((s, r) => s + r.transferSize, 0),
@@ -122,6 +131,7 @@ def one_pass(pw, url: str, render: str) -> dict:
     try:
         ctx = browser.new_context(viewport={"width": 1280, "height": 900})
         ctx.add_init_script(SEEDED_RANDOM)
+        ctx.add_init_script(READY_PROBE)
         page = ctx.new_page()
         page.goto(url, wait_until="load")
         load = page.evaluate(LOAD_METRICS_JS)
