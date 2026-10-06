@@ -29,6 +29,7 @@ jobs:
           python-version: "3.13"
       # Google Chrome et podman sont préinstallés sur les runners Ubuntu :
       # pas de navigateur Playwright à télécharger
-      - run: pip install playwright
+      # Version épinglée : une nouvelle version de Playwright ne doit pas casser la CI à elle seule
+      - run: pip install playwright==1.63.0
       - run: podman pull docker.io/nginxinc/nginx-unprivileged:1.30-alpine
       - run: python3 tests/e2e.py web
