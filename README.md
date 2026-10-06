@@ -79,6 +79,7 @@ Code under the MIT license (see `LICENSE`). The fonts in `web/fonts/` (Cormorant
 - Input capped at 5,000 characters: a pasted chapter used to freeze the page for 2 seconds per keystroke
 - Fonts keep their security headers, and their file names change with their content so a year of caching can't serve a stale font
 - Saved settings are validated before reuse
+- Text files compressed harder (gzip level 6): 1.5 KB less on a first visit
 - More tests: reduced motion, copy fallback and refusal, mobile layout, security headers, font loading
 
 ### v1.2.0 — Seven languages (2026-09-24)
@@ -107,5 +108,6 @@ Code under the MIT license (see `LICENSE`). The fonts in `web/fonts/` (Cormorant
 
 | Version | Date       | Changes                                         |
 |---------|------------|-------------------------------------------------|
+| 1.1.1   | 2026-10-06 | Note gzip level 6 in the changelog |
 | 1.1.0   | 2026-10-06 | Document requirements, input cap and font naming rule |
 | 1.0.0   | 2026-10-06 | Track README revisions, update nginx image to 1.30 |
