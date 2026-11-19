@@ -54,5 +54,5 @@ jobs:
       # pas de navigateur Playwright à télécharger
       # Version épinglée : une nouvelle version de Playwright ne doit pas casser la CI à elle seule
       - run: pip install playwright==1.63.0
-      - run: podman pull docker.io/nginxinc/nginx-unprivileged:1.30-alpine
+      - run: podman pull ghcr.io/nginx/nginx-unprivileged:1.30-alpine
       - run: python3 tests/e2e.py web

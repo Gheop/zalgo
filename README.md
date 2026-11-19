@@ -39,7 +39,7 @@ To serve it like production, with compression, long-lived font caching and the c
 podman run --rm -p 8080:8080 \
   -v "$PWD/web:/usr/share/nginx/html:ro" \
   -v "$PWD/web/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
-  docker.io/nginxinc/nginx-unprivileged:1.30-alpine
+  ghcr.io/nginx/nginx-unprivileged:1.30-alpine
 ```
 
 `docker` works in place of `podman`. TLS and HSTS belong to whatever proxy sits in front.
@@ -72,6 +72,10 @@ The end-to-end test needs `podman`, Google Chrome and `pip install playwright`. 
 Code under the MIT license (see `LICENSE`). The fonts in `web/fonts/` (Cormorant Garamond, Noto Serif) remain under the SIL Open Font License 1.1.
 
 ## Changelog
+
+### v1.3.2 — nginx image from ghcr.io (2026-11-19)
+
+- Server image now pulled from ghcr.io, following the stable 1.30 branch: the Docker Hub tag stopped receiving new versions after 1.30.6, ghcr.io carries the fixes (1.30.7 today)
 
 ### v1.3.1 — Lighter fonts (2026-10-06)
 
@@ -112,6 +116,7 @@ Code under the MIT license (see `LICENSE`). The fonts in `web/fonts/` (Cormorant
 
 | Version | Date       | Changes                                         |
 |---------|------------|-------------------------------------------------|
+| 1.1.3   | 2026-11-19 | Point the self-hosting command to the ghcr.io nginx image |
 | 1.1.2   | 2026-10-06 | Add v1.3.1 changelog entry |
 | 1.1.1   | 2026-10-06 | Note gzip level 6 in the changelog |
 | 1.1.0   | 2026-10-06 | Document requirements, input cap and font naming rule |
